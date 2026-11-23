@@ -1,0 +1,104 @@
+PACKET CAPTURE — OBSERVED OUTPUT
+Captured: 2026-11-23T09:29:32.403Z
+Interface: en0 (Wi-Fi 10.7.29.79)
+Parsed IPv4 packet lines: 15
+Configured targets (not proof of reachability): 10.7.17.94, 10.7.29.79, 10.7.30.144, 10.7.22.227
+
+This capture contains a DNS probe, a named HTTPS request, and two independent direct-backend probes. Direct probes do not establish which backend Nginx selected. TCP service ports do not prove TLS version, cipher, certificate trust, HTTP contents, or a complete handshake. Inspect the pcap in Wireshark for decoded protocol evidence.
+
+PROBE RESULTS
+$ dig "@10.7.17.94" "app.teamX.test" "A" "+time=2" "+tries=1"
+
+; <<>> DiG 9.10.6 <<>> @10.7.17.94 app.teamX.test A +time=2 +tries=1
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 46035
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;app.teamX.test.			IN	A
+
+;; ANSWER SECTION:
+app.teamX.test.		30	IN	A	10.7.3.128
+
+;; Query time: 83 msec
+;; SERVER: 10.7.17.94#53(10.7.17.94)
+;; WHEN: Mon Nov 23 14:59:32 IST 2026
+;; MSG SIZE  rcvd: 59
+
+
+
+$ curl "--noproxy" "*" "-sS" "-i" "--connect-timeout" "2" "--max-time" "5" "-v" "--cacert" "/Users/ash/CascadeProjects/projects..../CN/personB/tls/ca.crt" "https://app.teamX.test:8443/api/status"
+* Could not resolve host: app.teamX.test
+* shutting down connection #0
+curl: (6) Could not resolve host: app.teamX.test
+
+Command failed: curl --noproxy * -sS -i --connect-timeout 2 --max-time 5 -v --cacert /Users/ash/CascadeProjects/projects..../CN/personB/tls/ca.crt https://app.teamX.test:8443/api/status
+* Could not resolve host: app.teamX.test
+* shutting down connection #0
+curl: (6) Could not resolve host: app.teamX.test
+
+
+$ curl "--noproxy" "*" "-sS" "-i" "--connect-timeout" "2" "--max-time" "5" "http://10.7.30.144:3001/api/status"
+HTTP/1.1 200 OK
+X-Powered-By: Express
+X-Backend: A
+Content-Type: application/json; charset=utf-8
+Content-Length: 68
+ETag: "44-+ShYA9dSKTPwUEJMKmyZQa0YsY8"
+Date: Mon, 23 Nov 2026 09:29:32 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"backend":"A","status":"ok","timestamp":"2026-11-23T09:29:32.263Z"}
+
+$ curl "--noproxy" "*" "-sS" "-i" "--connect-timeout" "2" "--max-time" "5" "http://10.7.22.227:3002/api/status"
+HTTP/1.1 200 OK
+X-Powered-By: Express
+X-Backend: B
+Content-Type: application/json; charset=utf-8
+Content-Length: 68
+ETag: "44-PJCkXrI0o9Z1IpxKNYM+KnD0YmM"
+Date: Mon, 23 Nov 2026 09:29:32 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"backend":"B","status":"ok","timestamp":"2026-11-23T09:29:32.373Z"}
+
+PACKET SUMMARY
+1 | 14:59:32.021406 | 10.7.29.79:60634 > 10.7.17.94:53 | DNS | 46035+ [1au] A? app.teamX.test. (43)
+2 | 14:59:32.104523 | 10.7.17.94:53 > 10.7.29.79:60634 | DNS | 46035* 1/0/1 A 10.7.3.128 (59)
+3 | 14:59:32.151187 | 10.7.29.79:60409 > 10.7.30.144:3001 | TCP | Flags [SEW], seq 197664648, win 65535, options [mss 1460,nop,wscale 6,nop,nop,TS val 3090356437 ecr 0,sackOK,eol], length 0
+4 | 14:59:32.261139 | 10.7.30.144:3001 > 10.7.29.79:60409 | TCP | Flags [S.E], seq 914216295, ack 197664649, win 65535, options [mss 1460,nop,wscale 6,nop,nop,TS val 2576194704 ecr 3090356437,sackOK,eol], length 0
+5 | 14:59:32.261280 | 10.7.29.79:60409 > 10.7.30.144:3001 | TCP | Flags [.], ack 1, win 2059, options [nop,nop,TS val 3090356548 ecr 2576194704], length 0
+6 | 14:59:32.261413 | 10.7.29.79:60409 > 10.7.30.144:3001 | TCP | Flags [P.], seq 1:91, ack 1, win 2059, options [nop,nop,TS val 3090356548 ecr 2576194704], length 90
+7 | 14:59:32.269175 | 10.7.30.144:3001 > 10.7.29.79:60409 | TCP | Flags [.], ack 1, win 2059, options [nop,nop,TS val 2576194716 ecr 3090356548], length 0
+8 | 14:59:32.269178 | 10.7.30.144:3001 > 10.7.29.79:60409 | TCP | Flags [.], ack 91, win 2058, options [nop,nop,TS val 2576194716 ecr 3090356548], length 0
+9 | 14:59:32.270089 | 10.7.30.144:3001 > 10.7.29.79:60409 | TCP | Flags [P.], seq 1:316, ack 91, win 2058, options [nop,nop,TS val 2576194718 ecr 3090356548], length 315
+10 | 14:59:32.270174 | 10.7.29.79:60409 > 10.7.30.144:3001 | TCP | Flags [.], ack 316, win 2055, options [nop,nop,TS val 3090356556 ecr 2576194718], length 0
+11 | 14:59:32.270660 | 10.7.29.79:60409 > 10.7.30.144:3001 | TCP | Flags [F.], seq 91, ack 316, win 2055, options [nop,nop,TS val 3090356557 ecr 2576194718], length 0
+12 | 14:59:32.277357 | 10.7.30.144:3001 > 10.7.29.79:60409 | TCP | Flags [.], ack 92, win 2058, options [nop,nop,TS val 2576194725 ecr 3090356557], length 0
+13 | 14:59:32.277847 | 10.7.30.144:3001 > 10.7.29.79:60409 | TCP | Flags [F.], seq 316, ack 92, win 2058, options [nop,nop,TS val 2576194725 ecr 3090356557], length 0
+14 | 14:59:32.278103 | 10.7.29.79:60409 > 10.7.30.144:3001 | TCP | Flags [.], ack 317, win 2055, options [nop,nop,TS val 3090356564 ecr 2576194725], length 0
+15 | 14:59:32.305033 | 10.7.29.79:60410 > 10.7.22.227:3002 | TCP | Flags [SEW], seq 4184312745, win 65535, options [mss 1460,nop,wscale 6,nop,nop,TS val 3128925510 ecr 0,sackOK,eol], length 0
+
+RAW TCPDUMP OUTPUT
+2026-11-23 14:59:32.021406 IP 10.7.29.79.60634 > 10.7.17.94.53: 46035+ [1au] A? app.teamX.test. (43)
+2026-11-23 14:59:32.104523 IP 10.7.17.94.53 > 10.7.29.79.60634: 46035* 1/0/1 A 10.7.3.128 (59)
+2026-11-23 14:59:32.151187 IP 10.7.29.79.60409 > 10.7.30.144.3001: Flags [SEW], seq 197664648, win 65535, options [mss 1460,nop,wscale 6,nop,nop,TS val 3090356437 ecr 0,sackOK,eol], length 0
+2026-11-23 14:59:32.261139 IP 10.7.30.144.3001 > 10.7.29.79.60409: Flags [S.E], seq 914216295, ack 197664649, win 65535, options [mss 1460,nop,wscale 6,nop,nop,TS val 2576194704 ecr 3090356437,sackOK,eol], length 0
+2026-11-23 14:59:32.261280 IP 10.7.29.79.60409 > 10.7.30.144.3001: Flags [.], ack 1, win 2059, options [nop,nop,TS val 3090356548 ecr 2576194704], length 0
+2026-11-23 14:59:32.261413 IP 10.7.29.79.60409 > 10.7.30.144.3001: Flags [P.], seq 1:91, ack 1, win 2059, options [nop,nop,TS val 3090356548 ecr 2576194704], length 90
+2026-11-23 14:59:32.269175 IP 10.7.30.144.3001 > 10.7.29.79.60409: Flags [.], ack 1, win 2059, options [nop,nop,TS val 2576194716 ecr 3090356548], length 0
+2026-11-23 14:59:32.269178 IP 10.7.30.144.3001 > 10.7.29.79.60409: Flags [.], ack 91, win 2058, options [nop,nop,TS val 2576194716 ecr 3090356548], length 0
+2026-11-23 14:59:32.270089 IP 10.7.30.144.3001 > 10.7.29.79.60409: Flags [P.], seq 1:316, ack 91, win 2058, options [nop,nop,TS val 2576194718 ecr 3090356548], length 315
+2026-11-23 14:59:32.270174 IP 10.7.29.79.60409 > 10.7.30.144.3001: Flags [.], ack 316, win 2055, options [nop,nop,TS val 3090356556 ecr 2576194718], length 0
+2026-11-23 14:59:32.270660 IP 10.7.29.79.60409 > 10.7.30.144.3001: Flags [F.], seq 91, ack 316, win 2055, options [nop,nop,TS val 3090356557 ecr 2576194718], length 0
+2026-11-23 14:59:32.277357 IP 10.7.30.144.3001 > 10.7.29.79.60409: Flags [.], ack 92, win 2058, options [nop,nop,TS val 2576194725 ecr 3090356557], length 0
+2026-11-23 14:59:32.277847 IP 10.7.30.144.3001 > 10.7.29.79.60409: Flags [F.], seq 316, ack 92, win 2058, options [nop,nop,TS val 2576194725 ecr 3090356557], length 0
+2026-11-23 14:59:32.278103 IP 10.7.29.79.60409 > 10.7.30.144.3001: Flags [.], ack 317, win 2055, options [nop,nop,TS val 3090356564 ecr 2576194725], length 0
+2026-11-23 14:59:32.305033 IP 10.7.29.79.60410 > 10.7.22.227.3002: Flags [SEW], seq 4184312745, win 65535, options [mss 1460,nop,wscale 6,nop,nop,TS val 3128925510 ecr 0,sackOK,eol], length 0
+

@@ -1,0 +1,75 @@
+PACKET CAPTURE — OBSERVED OUTPUT
+Captured: 2026-11-23T09:30:44.159Z
+Interface: en0 (Wi-Fi 10.7.29.79)
+Parsed IPv4 packet lines: 0
+Configured targets (not proof of reachability): 10.7.17.94, 10.7.29.79, 10.7.30.144, 10.7.22.227
+
+This capture contains a DNS probe, a named HTTPS request, and two independent direct-backend probes. Direct probes do not establish which backend Nginx selected. TCP service ports do not prove TLS version, cipher, certificate trust, HTTP contents, or a complete handshake. Inspect the pcap in Wireshark for decoded protocol evidence.
+
+PROBE RESULTS
+$ dig "@10.7.17.94" "app.teamX.test" "A" "+time=2" "+tries=1"
+
+; <<>> DiG 9.10.6 <<>> @10.7.17.94 app.teamX.test A +time=2 +tries=1
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 54796
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;app.teamX.test.			IN	A
+
+;; ANSWER SECTION:
+app.teamX.test.		30	IN	A	10.7.3.128
+
+;; Query time: 58 msec
+;; SERVER: 10.7.17.94#53(10.7.17.94)
+;; WHEN: Mon Nov 23 15:00:43 IST 2026
+;; MSG SIZE  rcvd: 59
+
+
+
+$ curl "--noproxy" "*" "-sS" "-i" "--connect-timeout" "2" "--max-time" "5" "-v" "--cacert" "/Users/ash/CascadeProjects/projects..../CN/personB/tls/ca.crt" "https://app.teamX.test:8443/api/status"
+* Could not resolve host: app.teamX.test
+* shutting down connection #0
+curl: (6) Could not resolve host: app.teamX.test
+
+Command failed: curl --noproxy * -sS -i --connect-timeout 2 --max-time 5 -v --cacert /Users/ash/CascadeProjects/projects..../CN/personB/tls/ca.crt https://app.teamX.test:8443/api/status
+* Could not resolve host: app.teamX.test
+* shutting down connection #0
+curl: (6) Could not resolve host: app.teamX.test
+
+
+$ curl "--noproxy" "*" "-sS" "-i" "--connect-timeout" "2" "--max-time" "5" "http://10.7.30.144:3001/api/status"
+HTTP/1.1 200 OK
+X-Powered-By: Express
+X-Backend: A
+Content-Type: application/json; charset=utf-8
+Content-Length: 68
+ETag: "44-HLRwKiGpM9XSbTGsa43b/7h0vsk"
+Date: Mon, 23 Nov 2026 09:30:44 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"backend":"A","status":"ok","timestamp":"2026-11-23T09:30:44.092Z"}
+
+$ curl "--noproxy" "*" "-sS" "-i" "--connect-timeout" "2" "--max-time" "5" "http://10.7.22.227:3002/api/status"
+HTTP/1.1 200 OK
+X-Powered-By: Express
+X-Backend: B
+Content-Type: application/json; charset=utf-8
+Content-Length: 68
+ETag: "44-Y9Ny8xFKovj2wudX1kwGZmDlBnw"
+Date: Mon, 23 Nov 2026 09:30:44 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+
+{"backend":"B","status":"ok","timestamp":"2026-11-23T09:30:44.143Z"}
+
+PACKET SUMMARY
+
+
+RAW TCPDUMP OUTPUT
+
