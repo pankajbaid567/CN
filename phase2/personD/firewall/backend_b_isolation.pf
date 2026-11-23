@@ -5,10 +5,10 @@
 set skip on lo0
 
 # Allow Mac 2 (Primary Edge) to reach Backend B (3002)
-pass in quick proto tcp from 10.7.3.128 to any port 3002
+pass in quick proto tcp from 10.7.29.79 to any port 3002
 
 # Allow Mac 3 (Standby Edge during Extension E) to reach Backend B (3002)
-pass in quick proto tcp from 10.7.6.84 to any port 3002
+pass in quick proto tcp from 10.7.30.144 to any port 3002
 
 # Block all other direct client access to Backend B (3002)
 block in quick proto tcp from any to any port 3002
