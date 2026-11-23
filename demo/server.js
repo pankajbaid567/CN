@@ -12,9 +12,9 @@ const EVIDENCE = path.join(ROOT, 'evidence');
 const categories = ['lan', 'dns', 'load-balancing', 'tls', 'caching', 'wireshark', 'failures', 'phase2'];
 const LAN_DEFAULTS = {
   mac1: '10.7.17.94',
-  mac2: '10.7.3.128',
-  mac3: '10.7.6.84',
-  mac4: '10.7.17.147',
+  mac2: '10.7.29.79',
+  mac3: '10.7.30.144',
+  mac4: '10.7.22.227',
   gateway: '10.7.0.1'
 };
 let config = {

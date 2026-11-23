@@ -3,10 +3,10 @@ const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 
 const checks = [
   { id:'lan', number:'01', title:'LAN reachability', icon:'↔', description:'Can this machine reach the DNS host, both backends, and the gateway?', method:'ICMP ping from demo host', success:'Each target replies with packet loss below 100%.', caveat:'Probes originate on this demo host. This does not establish all-pair LAN reachability.', endpoint:null },
-  { id:'backend-a', number:'02', title:'Backend A service (Mac 3 · Shreya)', icon:'◫', description:'Does Person C (Shreya) answer directly on port 3001?', method:'HTTP GET http://10.7.6.84:3001/api/status', success:'HTTP 200 OK with header X-Backend: A.', caveat:'Direct probe bypasses Nginx and tests microservice isolation.', endpoint:'/api/test-direct-backend?backend=A' },
-  { id:'backend-b', number:'03', title:'Backend B service (Mac 4 · Ranvendra)', icon:'◫', description:'Does Person D (Ranvendra) answer directly on port 3002?', method:'HTTP GET http://10.7.17.147:3002/api/status', success:'HTTP 200 OK with header X-Backend: B.', caveat:'Direct probe bypasses Nginx and tests microservice isolation.', endpoint:'/api/test-direct-backend?backend=B' },
+  { id:'backend-a', number:'02', title:'Backend A service (Mac 3 · Shreya)', icon:'◫', description:'Does Person C (Shreya) answer directly on port 3001?', method:'HTTP GET http://10.7.30.144:3001/api/status', success:'HTTP 200 OK with header X-Backend: A.', caveat:'Direct probe bypasses Nginx and tests microservice isolation.', endpoint:'/api/test-direct-backend?backend=A' },
+  { id:'backend-b', number:'03', title:'Backend B service (Mac 4 · Ranvendra)', icon:'◫', description:'Does Person D (Ranvendra) answer directly on port 3002?', method:'HTTP GET http://10.7.22.227:3002/api/status', success:'HTTP 200 OK with header X-Backend: B.', caveat:'Direct probe bypasses Nginx and tests microservice isolation.', endpoint:'/api/test-direct-backend?backend=B' },
   { id:'lb', number:'04', title:'Load distribution (Round-Robin)', icon:'⇉', description:'Does Nginx edge on Mac 2 (Ashutosh) balance traffic across both backends?', method:'8 repeated GET /api/status requests via edge :8080', success:'Successful samples include both A and B. Exact order depends on concurrent traffic.', caveat:'When one upstream is excluded, verify every sampled request reached the remaining backend.', endpoint:'/api/test-lb?count=8' },
-  { id:'dns', number:'05', title:'Private DNS resolution (Mac 1 · Pankaj)', icon:'◎', description:'Do app.teamX.test and api.teamX.test resolve via Person A (Pankaj)?', method:'Direct dig (@10.7.17.94) and system dig', success:'All four DNS probes return 10.7.3.128.', caveat:'Checks DNS answers from this host. Other client machines must be checked separately.', endpoint:'/api/test-dns' },
+  { id:'dns', number:'05', title:'Private DNS resolution (Mac 1 · Pankaj)', icon:'◎', description:'Do app.teamX.test and api.teamX.test resolve via Person A (Pankaj)?', method:'Direct dig (@10.7.17.94) and system dig', success:'All four DNS probes return 10.7.29.79.', caveat:'Checks DNS answers from this host. Other client machines must be checked separately.', endpoint:'/api/test-dns' },
   { id:'tls', number:'06', title:'HTTPS & TLS termination (Mac 2 · Ashutosh)', icon:'◇', description:'Does edge serve valid HTTPS with private CA on :8443?', method:'curl --cacert ca.crt https://app.teamX.test:8443/api/status', success:'TLS handshake succeeds and returns HTTP 200.', caveat:'Bypasses DNS with --resolve to directly verify certificate chain.', endpoint:'/api/test-tls' },
   { id:'cache', number:'07', title:'Conditional HTTP caching', icon:'▥', description:'Does a repeat request with If-None-Match receive 304?', method:'GET /api/cached with ETag revalidation', success:'First request has ETag; second request returns 304 Not Modified.', caveat:'Proves HTTP conditional validation and bandwidth saving.', endpoint:'/api/test-cache' },
   { id:'trace', number:'08', title:'Named HTTPS request', icon:'⚡', description:'Does a complete request traverse DNS ➔ TLS Edge ➔ Upstream Backend?', method:'Full multi-protocol query from client to backend', success:'DNS matches the edge; verified HTTPS returns 200 with X-Backend.', caveat:'DNS and HTTPS command evidence. Packet capture is a separate requirement for Task G.', endpoint:'/api/trace-request' }
@@ -14,7 +14,7 @@ const checks = [
 
 const failures = [
   ['Wrong DNS server / DNS Down', 'fail-dns', 'Name fails to resolve while edge IP may still be reachable.', 'Restore dnsmasq on Mac 1 (10.7.17.94) or reset Wi-Fi DNS.'],
-  ['DNS points to wrong IP', 'fail-wrong-ip', 'Name resolves, but HTTPS reaches a host without the edge service.', 'Restore A record to 10.7.3.128 in dnsmasq and flush cache.'],
+  ['DNS points to wrong IP', 'fail-wrong-ip', 'Name resolves, but HTTPS reaches a host without the edge service.', 'Restore A record to 10.7.29.79 in dnsmasq and flush cache.'],
   ['Backend A stops (Failover to B)', 'fail-a', 'Nginx detects A down and routes 100% of traffic to Backend B.', 'Restart Backend A on Mac 3; traffic returns to round-robin.'],
   ['Backend B stops (Failover to A)', 'fail-b', 'Nginx detects B down and routes 100% of traffic to Backend A.', 'Restart Backend B on Mac 4; traffic returns to round-robin.'],
   ['Both backends stop (502 Bad Gateway)', 'fail-both', 'Edge proxy is reachable but returns HTTP 502 Bad Gateway.', 'Restart both Node processes on Mac 3 and Mac 4.'],
@@ -667,7 +667,7 @@ async function runAllPhase2() {
 }
 
 async function switchLabMode(mode) {
-  setNotice(mode === 'local' ? 'Starting local services (3001, 3002, 8443, 8444, 15353, 15354) and switching targets to 127.0.0.1…' : 'Switching probe targets to 4-Mac Team LAN IPs (10.7.17.94 / 10.7.3.128 / 10.7.6.84 / 10.7.17.147)…', 'info');
+  setNotice(mode === 'local' ? 'Starting local services (3001, 3002, 8443, 8444, 15353, 15354) and switching targets to 127.0.0.1…' : 'Switching probe targets to 4-Mac Team LAN IPs (10.7.17.94 / 10.7.29.79 / 10.7.30.144 / 10.7.22.227)…', 'info');
   try {
     const res = await apiPost('/api/phase2-ensure-local', { mode });
     config = res.config;
@@ -868,7 +868,7 @@ async function runPacketCapture() {
   try {
     const res = await apiPost('/api/capture-packets', {});
     livePackets = res.packets || [];
-    capturedInterface = res.interface || 'en0 (Wi-Fi 10.7.3.128)';
+    capturedInterface = res.interface || 'en0 (Wi-Fi 10.7.29.79)';
     activePacketFilter = 'ALL';
     document.querySelectorAll('[data-pfilter]').forEach(b => b.classList.toggle('active', b.dataset.pfilter === 'ALL')); 
 
