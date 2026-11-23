@@ -5,3 +5,4 @@ personB/nginx/logs/*.pid
 phase2/*/nginx/logs/*.log
 phase2/*/nginx/logs/*.pid
 CNstudy.md
+CN_Theory_Presentation.*
